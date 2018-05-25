@@ -52,7 +52,7 @@ module.exports = {
       template: __dirname + '/index.html'
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.optimize.UglifyJsPlugin(),
+    // new webpack.optimize.UglifyJsPlugin(),
     new ExtractTextPlugin('style.css'),
     new OptimizeCSSPlugin({
       safe: true, map: { inline: false }
