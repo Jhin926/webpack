@@ -1,55 +1,80 @@
-console.log('当前路径：' + __dirname);
-const webpack = require('webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
+let webpack = require('webpack');
+let HtmlWebpackPlugin = require('html-webpack-plugin');
+let ExtractTextWebpackPlugin = require('extract-text-webpack-plugin');
+let cleanWebpackPlugin = require('clean-webpack-plugin');
+
 module.exports = {
-    devtool: 'eval-source-map',
-    entry: __dirname + '/app/main.js',
+    entry: {
+        index: './src/index.js'
+    },
     output: {
-        path: __dirname + '/bublic',
-        filename: 'bundle.js'
+        filename: 'bundle.[hash:4].js',
+        path: path.resolve('dist')
     },
     devServer: {
-        contentBase: "./public",
-        historyApiFallback: true,
+        contentBase: './dist',
+        host: 'localhost',
+        port: 3000,
+        open: true,
         inline: true,
         hot: true
     },
+    plugins: [
+        // 通过new一下这个类来使用插件
+        new HtmlWebpackPlugin({
+            // 用哪个html作为模板
+            // 在src目录下创建一个index.html页面当做模板来用
+            template: './src/index.html',
+            hash: true, // 会在打包好的bundle.js后面加上hash串
+        }),
+        new ExtractTextWebpackPlugin('css/style.css'),
+        new cleanWebpackPlugin('dist'),
+        new webpack.HotModuleReplacementPlugin()
+    ],
     module: {
         rules: [
             {
-                test: /(\.jsx|\.js)$/,
-                use: {
-                    loader: "babel-loader",
-                    // options: {
-                    //     presets: [
-                    //         "env", "react"
-                    //     ]
-                    // }
-                },
-                exclude: /node_modules/
+                test: /\.css$/,
+                // use: ExtractTextWebpackPlugin.extract({
+                //     use: ['css-loader', 'postcss-loader'],
+                //     publicPath: '../'
+                // })
+                use: ['style-loader', 'css-loader', 'postcss-loader']
             },
             {
-                test: /\.css$/,
+                test: /\.(jpe?g|png|gif)$/,
                 use: [
                     {
-                        loader: "style-loader"
-                    }, {
-                        loader: "css-loader",
+                        loader: 'url-loader',
                         options: {
-                            modules: true // 指定启用css modules
+                            limit: 8192,
+                            outputPath: 'images/'
                         }
-                    }, {
-                        loader: "postcss-loader"
                     }
                 ]
+            },
+            {
+                test: /\.html?$/,
+                use: [
+                    {
+                        loader: 'html-withimg-loader'
+                    }
+                ]
+            },
+            {
+                test: /\.jsx?$/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [
+                            'env', 'react'
+                        ]
+                    }
+                },
+                include: /src/,
+                exclude: /node_modules/
             }
         ]
-    },
-    plugins: [
-        new webpack.BannerPlugin('版权所有'),
-        new HtmlWebpackPlugin({
-            template: __dirname + "/app/index.tmpl.html"//new 一个这个插件的实例，并传入相关的参数
-        }),
-        new webpack.HotModuleReplacementPlugin()//热加载插件
-    ]
+    }
 }
